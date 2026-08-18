@@ -1,5 +1,8 @@
+# Node 22, nao 20: o Prisma 7 traz dependencias que exigem >=22.
+# Manter a mesma familia de versao em dev e producao evita bug que
+# so aparece no container.
 # ---------- build ----------
-FROM node:20-alpine AS builder
+FROM node:22-alpine AS builder
 WORKDIR /app
 
 # Camada de dependencias separada: enquanto package.json nao mudar,
@@ -16,7 +19,7 @@ RUN npx prisma generate
 RUN npm run build
 
 # ---------- runtime ----------
-FROM node:20-alpine AS runner
+FROM node:22-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 

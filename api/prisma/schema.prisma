@@ -1,0 +1,252 @@
+// Desafio Elite Dev - Plataforma de Eventos e Ingressos
+// Postgres + Prisma
+
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+enum Role {
+  ORGANIZER
+  CUSTOMER
+  GATE
+}
+
+enum EventStatus {
+  DRAFT
+  PUBLISHED
+  CANCELLED
+}
+
+/// De onde veio o item do catalogo. MANUAL = organizador digitou tudo.
+enum CatalogSource {
+  TMDB
+  TICKETMASTER
+  MANUAL
+}
+
+/// SEATED  = setor numerado, tem linhas em Seat (mapa de assentos)
+/// GENERAL = pista, controlado por capacity/sold
+enum SectorKind {
+  SEATED
+  GENERAL
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  DECLINED
+  EXPIRED
+  CANCELLED
+}
+
+/// HELD      = reservado temporariamente, ainda nao pago
+/// CONFIRMED = pago, ocupa o lugar em definitivo
+/// RELEASED  = devolvido ao estoque (expirou ou foi cancelado)
+enum OrderItemStatus {
+  HELD
+  CONFIRMED
+  RELEASED
+}
+
+enum TicketStatus {
+  VALID
+  USED
+  CANCELLED
+}
+
+// ---------------------------------------------------------------------------
+// Identidade
+// ---------------------------------------------------------------------------
+
+model User {
+  id           String   @id @default(uuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         Role
+  createdAt    DateTime @default(now())
+
+  events      Event[]  @relation("OrganizerEvents")
+  orders      Order[]
+  validations Ticket[] @relation("ValidatedBy")
+}
+
+// ---------------------------------------------------------------------------
+// Catalogo e evento
+// ---------------------------------------------------------------------------
+
+model Event {
+  id          String @id @default(uuid())
+  organizerId String
+  organizer   User   @relation("OrganizerEvents", fields: [organizerId], references: [id])
+
+  title      String
+  synopsis   String?
+  imageUrl   String?
+  /// Identidade do item no provedor externo. Guardado para nao refazer
+  /// a chamada e para o painel do organizador saber a origem.
+  source     CatalogSource @default(MANUAL)
+  externalId String?
+
+  venue     String
+  city      String
+  startsAt  DateTime
+  doorsAt   DateTime?
+  status    EventStatus @default(DRAFT)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sectors Sector[]
+  orders  Order[]
+  tickets Ticket[]
+
+  @@index([status, startsAt])
+  @@index([source, externalId])
+}
+
+/// Um evento tem N setores. O setor decide como o lugar e vendido.
+model Sector {
+  id      String @id @default(uuid())
+  eventId String
+  event   Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  name       String
+  kind       SectorKind
+  priceCents Int
+
+  /// Usados apenas quando kind = GENERAL.
+  /// O overbooking em pista e barrado por UPDATE condicional em `sold`,
+  /// nao por contagem de linhas.
+  capacity Int?
+  sold     Int  @default(0)
+
+  seats Seat[]
+  items OrderItem[]
+
+  @@unique([eventId, name])
+}
+
+/// Existe apenas em setor SEATED. Uma linha por poltrona.
+model Seat {
+  id       String @id @default(uuid())
+  sectorId String
+  sector   Sector @relation(fields: [sectorId], references: [id], onDelete: Cascade)
+
+  row    String
+  number Int
+
+  /// Reserva temporaria. Vence sozinha, sem depender de job.
+  lockedByOrderId String?
+  lockedUntil     DateTime?
+
+  items OrderItem[]
+
+  @@unique([sectorId, row, number])
+  @@index([lockedUntil])
+}
+
+// ---------------------------------------------------------------------------
+// Reserva e pagamento
+// ---------------------------------------------------------------------------
+
+model Order {
+  id         String @id @default(uuid())
+  customerId String
+  customer   User   @relation(fields: [customerId], references: [id])
+  eventId    String
+  event      Event  @relation(fields: [eventId], references: [id])
+
+  status     OrderStatus @default(PENDING)
+  totalCents Int         @default(0)
+  /// Janela de checkout. Depois disso os locks caem.
+  expiresAt  DateTime
+  createdAt  DateTime    @default(now())
+
+  items    OrderItem[]
+  payments Payment[]
+
+  @@index([status, expiresAt])
+}
+
+model OrderItem {
+  id       String  @id @default(uuid())
+  orderId  String
+  order    Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  sectorId String
+  sector   Sector  @relation(fields: [sectorId], references: [id])
+  /// Nulo em setor GENERAL: a compra e por quantidade, sem lugar marcado.
+  seatId   String?
+  seat     Seat?   @relation(fields: [seatId], references: [id])
+
+  status     OrderItemStatus @default(HELD)
+  priceCents Int
+
+  ticket Ticket?
+
+  @@index([seatId, status])
+}
+
+/// Tentativas de cobranca simulada, aprovadas e recusadas.
+/// Guardar as recusas permite mostrar o caminho de erro na avaliacao.
+model Payment {
+  id      String @id @default(uuid())
+  orderId String
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  amountCents Int
+  approved    Boolean
+  reason      String?
+  cardLast4   String?
+  createdAt   DateTime @default(now())
+}
+
+// ---------------------------------------------------------------------------
+// Ingresso
+// ---------------------------------------------------------------------------
+
+model Ticket {
+  id          String    @id @default(uuid())
+  orderItemId String    @unique
+  orderItem   OrderItem @relation(fields: [orderItemId], references: [id])
+  eventId     String
+  event       Event     @relation(fields: [eventId], references: [id])
+
+  /// Codigo curto digitavel na portaria quando a camera falha.
+  /// Alfabeto sem caracteres ambiguos (sem 0/O, sem 1/I/L).
+  code       String @unique
+  /// Token separado do codigo: quem tem o link ve o ingresso,
+  /// mas o link nao e o segredo que a portaria confere.
+  shareToken String @unique
+  holderName String
+
+  status        TicketStatus @default(VALID)
+  usedAt        DateTime?
+  validatedById String?
+  validatedBy   User?        @relation("ValidatedBy", fields: [validatedById], references: [id])
+
+  issuedAt DateTime @default(now())
+
+  @@index([eventId, status])
+}
+
+// ---------------------------------------------------------------------------
+// Migration manual necessaria (Prisma nao gera indice unico parcial):
+//
+//   CREATE UNIQUE INDEX order_items_seat_confirmed_uniq
+//     ON "OrderItem" ("seatId")
+//     WHERE "status" = 'CONFIRMED' AND "seatId" IS NOT NULL;
+//
+// Rede de seguranca no banco: mesmo que a logica de aplicacao falhe,
+// o mesmo assento nunca fica confirmado em duas ordens.
+// ---------------------------------------------------------------------------

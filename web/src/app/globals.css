@@ -1,0 +1,136 @@
+@import "tailwindcss";
+
+/**
+ * Tokens da direcao "canhoto noturno": estrutura de bilhete impresso
+ * sobre papel escuro quente, ambar como unica cor de acao.
+ *
+ * Tailwind v4 le este bloco e gera as utilities sozinho: qualquer
+ * --color-* aqui vira bg-*, text-*, border-*; --font-* vira font-*;
+ * --radius-* vira rounded-*. Nao existe tailwind.config.ts neste
+ * projeto de proposito, o tema inteiro mora aqui.
+ */
+@theme {
+  --color-bg: #12100e;
+  --color-surface: #1c1815;
+  --color-surface-dim: #171412;
+  --color-surface-alt: #241e19;
+
+  --color-ink: #f2eadb;
+  --color-muted: #8e8579;
+  --color-muted-2: #6e655a;
+
+  --color-line: #2e2721;
+  --color-line-soft: #332c25;
+
+  --color-amber: #e8a33d;
+  --color-amber-ink: #412402;
+  --color-amber-dim: #7a5c2a;
+
+  --color-flame: #d9704a;
+  --color-danger: #c23b2a;
+
+  /** Fundo claro para o QR: leitura de camera exige contraste forte,
+   *  modulo escuro sobre claro, o que a paleta escura do app nao da.
+   *  Mesmo valor de --color-ink hoje, mas e outro token de proposito:
+   *  este e um fundo, aquele e cor de texto, podem divergir depois. */
+  --color-paper: #f2eadb;
+
+  --font-sans: var(--font-archivo);
+  --font-mono: var(--font-plex-mono);
+
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-lg: 10px;
+}
+
+@layer base {
+  body {
+    background-color: var(--color-bg);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+  }
+
+  ::selection {
+    background-color: var(--color-amber);
+    color: var(--color-amber-ink);
+  }
+
+  /** Foco visivel em ambar. Formularios de pagamento e login PRECISAM
+   *  disso: navegar por teclado em uma tela escura sem indicador de
+   *  foco e o tipo de falha de acessibilidade que passa despercebida. */
+  :focus-visible {
+    outline: 2px solid var(--color-amber);
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  /**
+   * O picote do bilhete: divisor tracejado com "furos" nas pontas.
+   *
+   * Os furos sao circulos pintados de --color-bg, nao mascara recortada.
+   * Decisao deliberada: mascara com mask-composite cortaria um buraco
+   * de verdade, funcionando sobre qualquer fundo, mas e CSS fragil demais
+   * entre navegadores para confiar sem testar em cada um. Pintar de
+   * --color-bg e simples, previsivel, e funciona perfeitamente porque
+   * todo cartao deste app vive direto sobre o fundo da pagina.
+   *
+   * A CONSEQUENCIA dessa escolha: nunca aninhe .stub-divider dentro de
+   * um painel com fundo diferente de --color-bg. Se isso um dia for
+   * necessario, e a hora de trocar para a versao com mask.
+   */
+  .stub-divider {
+    position: relative;
+    border-left: 2px dashed var(--color-line-soft);
+  }
+
+  .stub-divider::before,
+  .stub-divider::after {
+    content: "";
+    position: absolute;
+    left: -6px;
+    width: 12px;
+    height: 12px;
+    border-radius: 9999px;
+    background-color: var(--color-bg);
+  }
+
+  .stub-divider::before {
+    top: -6px;
+  }
+
+  .stub-divider::after {
+    bottom: -6px;
+  }
+
+  /** Selo retangular de status: LUGAR MARCADO, ESGOTADO, ULTIMOS N. */
+  .ticket-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    border-radius: var(--radius-sm);
+    padding: 0.2rem 0.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    letter-spacing: 0.06em;
+  }
+
+  /** Botao de acao primaria: sempre ambar, sempre texto escuro por cima. */
+  .btn-amber {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-sm);
+    background-color: var(--color-amber);
+    color: var(--color-amber-ink);
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    letter-spacing: 0.06em;
+    padding: 0.4rem 0.75rem;
+    transition: opacity 0.15s ease;
+  }
+
+  .btn-amber:hover {
+    opacity: 0.9;
+  }
+}

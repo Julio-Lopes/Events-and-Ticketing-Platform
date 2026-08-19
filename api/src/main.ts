@@ -1,16 +1,21 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 
+function isAllowedOrigin(origin: string): boolean {
+  const configured = process.env.APP_URL;
+  if (configured && origin === configured.replace(/\/$/, '')) return true;
+  if (origin === 'http://localhost:3000') return true;
+  return /^https:\/\/[a-z0-9-]+\.vercel\.app$/.test(origin);
+}
+
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  /**
-   * O front (Next) roda na 3000, entao a API fica na 3001.
-   * APP_URL aponta para o front e e a mesma origem liberada aqui:
-   * uma variavel so, sem lista de origens espalhada pelo codigo.
-   */
   app.enableCors({
-    origin: process.env.APP_URL ?? 'http://localhost:3000',
+    origin: (origin, callback) => {
+      if (!origin || isAllowedOrigin(origin)) return callback(null, true);
+      callback(new Error(`Origem nao permitida: ${origin}`));
+    },
     credentials: true,
   });
 

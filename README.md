@@ -4,6 +4,12 @@ Organizador publica eventos a partir de um catálogo externo (TMDb ou
 Ticketmaster), cliente reserva um lugar, paga de forma simulada e recebe um
 ingresso com QR, e a portaria valida na entrada.
 
+**Aplicação no ar:** https://events-and-ticketing-platform.vercel.app
+**API:** https://hopeful-patience-production-33d4.up.railway.app/api
+
+Entre com `cliente1@elite.dev` e senha `elite123` para percorrer o fluxo de
+compra, ou `portaria@elite.dev` para validar um ingresso na entrada.
+
 Monorepo simples, duas pastas, sem workspace compartilhado: `api` (NestJS) e
 `web` (Next.js) são projetos independentes que conversam por HTTP.
 
@@ -96,13 +102,25 @@ descartadas estão em [`web/README.md`](./web/README.md#identidade-visual).
 
 ## Deploy
 
-_A preencher quando a aplicação for publicada._
+| Peça | Onde | URL |
+|---|---|---|
+| Front | Vercel | https://events-and-ticketing-platform.vercel.app |
+| API | Railway, via Dockerfile | https://hopeful-patience-production-33d4.up.railway.app/api |
+| Banco | Neon (Postgres gerenciado) | — |
+
+O banco de produção já está semeado com as mesmas contas e eventos do seed
+local, então dá para percorrer o fluxo inteiro sem configurar nada.
+
+Uma observação sobre o ambiente publicado: a Vercel gera uma URL nova a cada
+deploy de preview, então o CORS da API aceita qualquer subdomínio
+`*.vercel.app` além da URL de produção. É uma abertura consciente para um
+projeto de avaliação; em produção real, previews mereceriam um domínio próprio.
 
 ## Status
 
 - [x] Backend completo e validado (`api/README.md`)
 - [x] Frontend completo (`web/README.md`)
-- [ ] Deploy
+- [x] Deploy (Vercel + Railway + Neon)
 
 ### Requisitos do enunciado
 
@@ -130,7 +148,7 @@ _A preencher quando a aplicação for publicada._
 | Cancelamento com devolução ao estoque | feito, para reservas pendentes |
 | Testes automatizados | não feito |
 | Mapa de assentos em tempo real | não feito |
-| Deploy | pendente |
+| Deploy | feito |
 
 ---
 

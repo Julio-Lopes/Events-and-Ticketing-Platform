@@ -2,6 +2,8 @@
 
 Next.js (App Router), React, TypeScript, Tailwind v4. Consome a API em `../api`.
 
+**No ar:** https://events-and-ticketing-platform.vercel.app
+
 ---
 
 ## Como rodar
@@ -241,6 +243,10 @@ plataforma passasse a hospedar as próprias imagens.
   tela e provavelmente precisa de mais contexto por assento.
 - **Edição de evento pelo painel.** A API tem `PATCH /events/:id`, o front só
   publica, despublica e exclui.
+- **CORS aberto para previews.** A API aceita qualquer subdomínio
+  `*.vercel.app`, porque a Vercel gera uma URL nova a cada deploy e fixar uma
+  única origem quebraria o front a cada push. Num sistema real, previews teriam
+  domínio próprio em vez dessa abertura.
 - **Chave do Ticketmaster.** O provider está implementado e a arquitetura
   suporta os dois; na entrega, apenas o TMDb está com chave configurada. Basta
   preencher `TICKETMASTER_API_KEY` na API para o segundo entrar em operação.

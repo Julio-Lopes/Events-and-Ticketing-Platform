@@ -8,7 +8,10 @@ Next.js (App Router), React, TypeScript, Tailwind v4. Consome a API em `../api`.
 
 ## Como rodar
 
-Requisitos: Node 20+, e a API rodando (ver [`../api/README.md`](../api/README.md)).
+**O caminho curto é o Docker Compose da raiz**, que sobe banco, API e front de
+uma vez: veja [`../README.md`](../README.md). O que segue é o setup manual.
+
+Requisitos: Node 22+, e a API rodando (ver [`../api/README.md`](../api/README.md)).
 
 ```bash
 cp .env.example .env.local
@@ -25,6 +28,23 @@ NEXT_PUBLIC_API_URL="http://localhost:3001/api"
 Em produção, aponte para a URL pública da API. Lembre de ajustar também o
 `APP_URL` no `.env` da API, que é a origem liberada no CORS e a base dos links
 de compartilhamento de ingresso.
+
+### Uma API, dois endereços
+
+Rodando por Docker existe uma segunda variável, `INTERNAL_API_URL`, e a razão
+dela é a decisão de Server vs Client Component descrita abaixo.
+
+`NEXT_PUBLIC_API_URL` é substituída no código em tempo de **build** e vai
+embutida no bundle: quem a executa é o navegador, que está fora da rede do
+Docker e só enxerga `localhost:3001`.
+
+`INTERNAL_API_URL` é lida em tempo de **execução** pelo servidor Next, que
+renderiza o catálogo como Server Component. De dentro do container, `localhost`
+apontaria para o próprio front; a API está em `api:3001`, pelo DNS do Compose.
+
+O mesmo código roda em dois contextos de rede diferentes e precisa saber disso.
+Fora do Docker (dev local, Vercel) `INTERNAL_API_URL` não existe e as duas
+resolvem para o mesmo valor.
 
 ## Telas
 

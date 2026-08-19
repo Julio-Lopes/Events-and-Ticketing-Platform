@@ -1,9 +1,11 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001/api";
+const isServer = typeof window === "undefined";
 
-/**
- * Forma de erro que o Nest devolve com ValidationPipe + class-validator:
- * `message` pode ser string OU array de strings (uma por campo invalido).
- */
+const API_URL = isServer
+  ? (process.env.INTERNAL_API_URL ??
+     process.env.NEXT_PUBLIC_API_URL ??
+     "http://localhost:3001/api")
+  : (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001/api");
+
 interface NestErrorBody {
   statusCode: number;
   message: string | string[];
@@ -26,11 +28,6 @@ interface ApiFetchOptions extends Omit<RequestInit, "body"> {
   body?: unknown;
 }
 
-/**
- * Ponto unico de chamada a API. Usavel em Server e Client Component:
- * em Server Component so faz sentido para rotas @Public() (catalogo,
- * ingresso compartilhado), porque nao ha token disponivel la.
- */
 export async function apiFetch<T>(path: string, options: ApiFetchOptions = {}): Promise<T> {
   const { token, body, headers, ...rest } = options;
 

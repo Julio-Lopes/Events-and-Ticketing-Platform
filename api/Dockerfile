@@ -29,6 +29,14 @@ COPY package*.json ./
 RUN npm ci --omit=dev && npm i prisma@7 tsx --no-save
 
 COPY --from=builder /app/dist ./dist
+
+# O client gerado tambem vai para o runtime, em src/generated.
+# Nao e a aplicacao que precisa dele (o dist ja tem tudo compilado),
+# e sim o prisma/seed.ts, que roda em TypeScript via tsx e importa
+# de ../src/generated/prisma/client. Sem isto o seed falha com
+# MODULE_NOT_FOUND dentro do container.
+COPY --from=builder /app/src/generated ./src/generated
+
 COPY prisma ./prisma
 COPY prisma.config.ts ./
 COPY docker-entrypoint.sh ./

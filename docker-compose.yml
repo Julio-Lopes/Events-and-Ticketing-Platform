@@ -1,0 +1,80 @@
+# Sobe o projeto inteiro com um comando: banco, API e front.
+#
+#   cp .env.docker.example .env
+#   docker compose up --build
+#
+# Front em http://localhost:3000, API em http://localhost:3001/api.
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: elite-tickets-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: elite
+      POSTGRES_PASSWORD: elite
+      POSTGRES_DB: elite_tickets
+    ports:
+      # 5433 do lado de fora porque 5432 costuma estar ocupada por um
+      # Postgres instalado direto na maquina. So importa para conectar
+      # de fora (DBeaver, prisma studio); entre containers e db:5432.
+      - "5433:5432"
+    volumes:
+      - elite_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U elite -d elite_tickets"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build:
+      context: ./api
+    container_name: elite-tickets-api
+    restart: unless-stopped
+    depends_on:
+      db:
+        # Espera o banco aceitar conexao antes de subir: sem isto, o
+        # `migrate deploy` do entrypoint corre contra um Postgres que
+        # ainda esta inicializando e falha na primeira vez.
+        condition: service_healthy
+    environment:
+      # `db` e o nome do servico, resolvido pelo DNS interno do Compose.
+      # Porta 5432, a de dentro do container, nao a 5433 publicada.
+      DATABASE_URL: postgresql://elite:elite@db:5432/elite_tickets?schema=public
+      JWT_SECRET: ${JWT_SECRET:-troque-isto-em-producao}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-43200}
+      TICKET_SIGNING_SECRET: ${TICKET_SIGNING_SECRET:-troque-isto-tambem}
+      APP_URL: http://localhost:3000
+      TMDB_API_KEY: ${TMDB_API_KEY:-}
+      TICKETMASTER_API_KEY: ${TICKETMASTER_API_KEY:-}
+      PORT: 3001
+      # Semeia na primeira subida. O seed e destrutivo (limpa tudo antes
+      # de recriar), mas aqui isso e desejado: banco de demonstracao que
+      # volta ao estado conhecido a cada `docker compose up`.
+      RUN_SEED: "true"
+    ports:
+      - "3001:3001"
+
+  web:
+    build:
+      context: ./web
+      args:
+        # localhost, NAO `api`. Esta URL vai para dentro do bundle e
+        # quem a executa e o NAVEGADOR, que esta fora da rede do
+        # Compose e nao resolve o nome `api`.
+        NEXT_PUBLIC_API_URL: http://localhost:3001/api
+    container_name: elite-tickets-web
+    restart: unless-stopped
+    depends_on:
+      - api
+    environment:
+      # Lida em RUNTIME pelo servidor Next (Server Components).
+      # Aqui `api` resolve pelo DNS do Compose; localhost apontaria
+      # para o proprio container do front, onde nao ha API.
+      INTERNAL_API_URL: http://api:3001/api
+    ports:
+      - "3000:3000"
+
+volumes:
+  elite_pgdata:

@@ -9,46 +9,93 @@ e paga, recebe um ingresso com QR, e a portaria valida na entrada.
 
 ## Como rodar
 
-Requisitos: Node 20+, Docker.
+**O caminho curto é o Docker Compose da raiz**, que sobe banco, API e front de
+uma vez: veja [`../README.md`](../README.md). O que segue é o setup manual, para
+quem quiser rodar só a API.
+
+Requisitos: Node 22+, Docker (para o Postgres).
 
 ```bash
-docker compose up -d db      # sobe o Postgres na porta 5433
-docker compose ps            # espere ficar (healthy)
+docker compose -f ../docker-compose.yml up -d db
 
 cp .env.example .env
-
 npm install
 
-npx prisma migrate dev --name init --create-only
-# cole o conteúdo de prisma/INDICE-PARCIAL.sql no FINAL do migration.sql gerado
-npx prisma migrate dev
+npx prisma migrate deploy   # as migrations já existem no repositório
 npx prisma generate
 npx prisma db seed
 
-npm run start:dev            # API em http://localhost:3001/api
+npm run start:dev           # http://localhost:3001/api
 ```
 
-### Por que esses passos são assim
+### Notas de configuração
+
+Cada uma destas existe porque custou tempo descobrir:
 
 **A porta do banco é 5433, não 5432.** A 5432 costuma estar ocupada por um
 Postgres instalado direto na máquina, e nesse caso a aplicação conecta no banco
 errado sem dar erro nenhum. Dentro da rede do Compose o endereço segue sendo
 `db:5432`.
 
-**O `--create-only` existe por causa de um índice.** O Prisma não gera índice
-único parcial, e a rede de segurança contra venda dupla de assento depende de
-um. Como migration já aplicada não pode ser editada (o checksum acusa), o SQL
-precisa entrar antes de aplicar.
+**Use `migrate deploy`, não `migrate dev`.** As migrations já estão no
+repositório, incluindo o índice único parcial escrito à mão. `migrate dev`
+tentaria comparar com o schema e gerar migration nova.
+
+Se você precisar **criar** uma migration nova que envolva índice parcial, o
+fluxo é `migrate dev --name x --create-only`, editar o SQL gerado, e só então
+`migrate dev`. O Prisma não gera esse tipo de índice, e migration já aplicada
+não pode ser editada porque o checksum acusa. O SQL do índice atual está em
+`prisma/INDICE-PARCIAL.sql`, para referência.
 
 **`migrate dev` não roda `generate` nem `db seed` sozinho.** Isso mudou no
 Prisma 7. Os três comandos são separados de propósito.
 
-**A URL do banco aparece em dois lugares.** O `prisma.config.ts` alimenta o CLI
-(migrate, seed, studio) e o adapter no `PrismaService` alimenta o runtime. Na v7
-o campo `url` foi removido do bloco `datasource` do schema, então não existe mais
-um lugar único. São processos diferentes lendo a mesma variável de ambiente.
+**O generator usa `moduleFormat = "cjs"`.** Já está no schema. O Prisma 7 gera o
+client como ESM por padrão e emite um `package.json` próprio dentro da pasta
+gerada declarando isso; o Nest compila para CommonJS, e o runtime quebra com
+`exports is not defined in ES module scope`.
 
----
+**A URL do banco aparece em dois lugares.** Na v7 o campo `url` foi removido do
+bloco `datasource` do schema. O `prisma.config.ts` alimenta a CLI (migrate, seed,
+studio) e o adapter no `PrismaService` alimenta o runtime. São processos
+diferentes lendo a mesma variável de ambiente.
+
+O `prisma.config.ts` também declara o `datasource` **condicionalmente**: em
+container, `prisma generate` roda durante o build, quando não há (nem deve
+haver) credencial de banco. Ele só lê o schema e gera o client, sem conectar em
+nada, então exigir a URL ali fazia o build falhar.
+
+### Validando o fluxo
+
+`scripts/smoke.ps1` percorre a aplicação de ponta a ponta contra a API rodando:
+
+```powershell
+.\scripts\smoke.ps1
+```
+
+Ele verifica 18 pontos. Os quatro que importam:
+
+```
+== Reserva ==
+  OK   reservar 2 lugares
+  OK   o mesmo lugar nao pode ser reservado de novo      → 409
+== Pagamento ==
+  OK   cartao de recusa e recusado
+  OK   a reserva sobrevive a recusa                      → segue PENDING
+== Portaria ==
+  OK   QR valido entra                                   → VALID
+  OK   o mesmo QR nao entra duas vezes                   → ALREADY_USED
+  OK   assinatura adulterada e rejeitada                 → INVALID
+  OK   ingresso do evento errado e recusado              → WRONG_EVENT
+
+18 passaram, 0 falharam.
+```
+
+Não substitui testes automatizados, e o projeto não os tem. Mas o fluxo foi
+validado de ponta a ponta, e os pontos difíceis do desafio estão cobertos.
+
+O script vende dois lugares e os queima na portaria, então rode
+`npx prisma db seed` antes de repetir.
 
 ## Contas semeadas
 
@@ -257,9 +304,10 @@ mapa inconsistente pela API.
 
 ## O que não está feito
 
-- **Testes automatizados.** É a lacuna que mais me incomoda. O teste que mais
-  faria falta é o de concorrência: duas requisições simultâneas no mesmo assento,
-  esperando um 201 e um 409.
+- **Testes automatizados.** É a lacuna que mais me incomoda. O `smoke.ps1`
+  valida o fluxo de ponta a ponta, mas é sequencial: o teste que mais faria
+  falta é o de concorrência real, duas requisições **simultâneas** no mesmo
+  assento, esperando um 201 e um 409.
 - **Cancelamento com reembolso.** Reserva pendente pode ser cancelada e volta ao
   estoque. Pedido pago, não.
 - **Mapa de assentos em tempo real.** A disponibilidade é consultada por

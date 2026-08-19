@@ -26,30 +26,39 @@ decisões de cada lado, com a justificativa, estão nos READMEs de cada pasta.
 
 ## Rodando o projeto inteiro
 
+Requisitos: Docker.
+
 ```bash
-# 1. Banco
-cd api
-docker compose up -d db
-
-# 2. API
-cp .env.example .env
-npm install
-npx prisma migrate dev --name init --create-only
-# cole prisma/INDICE-PARCIAL.sql no final da migration gerada
-npx prisma migrate dev
-npx prisma generate
-npx prisma db seed
-npm run start:dev          # http://localhost:3001/api
-
-# 3. Front, em outro terminal
-cd ../web
-cp .env.example .env.local
-npm install
-npm run dev                # http://localhost:3000
+cp .env.docker.example .env    # opcional: sem isto, valores padrão são usados
+docker compose up --build
 ```
 
-Passo a passo detalhado, com o porquê de cada decisão de configuração, em
+Front em http://localhost:3000, API em http://localhost:3001/api.
+
+É só isso. O Compose sobe o Postgres, espera ele aceitar conexão, aplica as
+migrations, semeia os dados de demonstração e então sobe API e front. O primeiro
+build leva alguns minutos; as subidas seguintes são rápidas.
+
+Para preencher `TMDB_API_KEY` no `.env` e habilitar a busca no catálogo externo,
+uma chave gratuita sai em minutos em themoviedb.org. Sem ela a aplicação funciona
+normalmente: o provedor se declara indisponível e a tela avisa qual faltou.
+
+Para rodar cada parte separadamente, sem Docker, veja
 [`api/README.md`](./api/README.md) e [`web/README.md`](./web/README.md).
+
+### Duas coisas que valem saber sobre esse Compose
+
+**O front conhece a API por dois endereços diferentes.** `NEXT_PUBLIC_API_URL`
+é embutida no bundle e usada pelo navegador, que está fora da rede do Docker e
+só enxerga `localhost:3001`. `INTERNAL_API_URL` é lida em tempo de execução pelo
+servidor Next, que renderiza o catálogo como Server Component e alcança a API
+pelo nome do serviço, `api:3001`. Uma variável só não atenderia os dois: de
+dentro do container, `localhost` aponta para o próprio front.
+
+**O seed roda a cada subida, e aqui isso é proposital.** Ele é destrutivo, limpa
+tudo antes de recriar, e por isso está desligado no ambiente publicado. Local, o
+efeito desejado é o oposto: `docker compose up` devolve o banco a um estado
+conhecido, com os mesmos dados descritos abaixo.
 
 ## Contas semeadas
 
@@ -142,7 +151,7 @@ projeto de avaliação; em produção real, previews mereceriam um domínio pró
 | Compartilhamento de ingresso por link | feito, com rotação de token |
 | Validação sem repetição na portaria | feito, `UPDATE` condicional |
 | Dados de teste semeados | feito |
-| Docker Compose | feito, para o banco |
+| Docker Compose | feito, projeto inteiro em um comando |
 | Busca e filtro de eventos | feito |
 | Painel do organizador | feito |
 | Cancelamento com devolução ao estoque | feito, para reservas pendentes |

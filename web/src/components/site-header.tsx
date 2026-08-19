@@ -19,16 +19,16 @@ export function SiteHeader() {
   const { user, ready, logout } = useAuth();
 
   return (
-    <header className="flex items-center justify-between px-4 py-2.5 border-b border-line">
+    <header className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1.5 px-4 py-2.5 border-b border-line">
       <Link
         href="/"
-        className="font-mono text-[11px] tracking-wider text-amber hover:opacity-80"
+        className="font-mono text-[11px] tracking-wider text-amber hover:opacity-80 shrink-0"
       >
         BILHETERIA
       </Link>
 
       {!ready ? null : (
-        <div className="flex items-center gap-3 font-mono text-[11px]">
+        <div className="flex items-center flex-wrap gap-x-3 gap-y-1 font-mono text-[11px] ml-auto">
           {user?.role === "CUSTOMER" && (
             <Link href="/meus-ingressos" className="text-muted hover:text-ink">
               meus ingressos
@@ -50,6 +50,7 @@ export function SiteHeader() {
               <span className="text-ink">{user.name}</span>
               <span className="text-muted-2">·</span>
               <span className="text-muted">{ROLE_LABEL[user.role]}</span>
+              <span className="text-muted-2">·</span>
               <button onClick={logout} className="text-amber hover:opacity-80">
                 sair
               </button>

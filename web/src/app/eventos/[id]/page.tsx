@@ -26,11 +26,11 @@ export default async function EventPage({ params }: Props) {
 
   return (
     <main className="min-h-screen px-4 py-8 md:px-8 md:py-10">
-      <div className="max-w-2xl mx-auto flex flex-col gap-6">
+      <div className="max-w-3xl mx-auto flex flex-col gap-6">
         <BackLink href="/" label="catálogo" />
 
         <div className="bg-surface rounded-md overflow-hidden flex">
-          <div className="w-28 shrink-0 bg-surface-alt flex items-center justify-center">
+          <div className="w-32 sm:w-40 shrink-0 bg-surface-alt flex items-center justify-center ring-1 ring-inset ring-amber-dim/15">
             {event.imageUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={event.imageUrl} alt="" className="w-full h-full object-cover" />
@@ -38,16 +38,18 @@ export default async function EventPage({ params }: Props) {
               <span className="font-mono text-[9px] tracking-wider text-muted-2">PÔSTER</span>
             )}
           </div>
-          <div className="flex-1 p-4 stub-divider">
-            <p className="font-mono text-[10px] tracking-wider text-amber">
+          <div className="flex-1 p-4 sm:p-5 stub-divider min-w-0">
+            <p className="font-mono text-[10px] tracking-[0.15em] text-amber">
               {formatEventDateTime(event.startsAt)}
             </p>
-            <h1 className="text-xl font-medium text-ink mt-1">{event.title}</h1>
-            <p className="text-sm text-muted mt-0.5">
+            <h1 className="text-xl sm:text-2xl font-semibold text-ink mt-1.5 leading-tight">
+              {event.title}
+            </h1>
+            <p className="text-sm text-muted mt-1">
               {event.venue} · {event.city}
             </p>
             {event.synopsis && (
-              <p className="text-sm text-muted-2 mt-2 leading-relaxed">{event.synopsis}</p>
+              <p className="text-[13px] text-muted-2 mt-3 leading-relaxed">{event.synopsis}</p>
             )}
           </div>
         </div>

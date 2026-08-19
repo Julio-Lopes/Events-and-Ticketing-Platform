@@ -133,4 +133,46 @@
   .btn-amber:hover {
     opacity: 0.9;
   }
+
+  /** Textura de cortina para o painel visual do login: duas camadas de
+   *  repeating-linear-gradient, uma so de sombra (as pregas) e outra
+   *  alternando tom de superficie (o veludo), mais um glow radial ambar
+   *  no topo simulando luz de palco antes do espetaculo. */
+  .curtain-texture {
+    background-image:
+      repeating-linear-gradient(
+        100deg,
+        rgba(0, 0, 0, 0.3) 0px,
+        rgba(0, 0, 0, 0.3) 2px,
+        transparent 2px,
+        transparent 34px
+      ),
+      repeating-linear-gradient(
+        100deg,
+        var(--color-surface-alt) 0px,
+        var(--color-surface-alt) 17px,
+        var(--color-surface-dim) 17px,
+        var(--color-surface-dim) 34px
+      );
+  }
+
+  .curtain-glow {
+    background: radial-gradient(
+      ellipse 60% 45% at 50% 18%,
+      rgba(232, 163, 61, 0.24),
+      transparent 70%
+    );
+  }
+
+  /** Arco da "tela"/"palco" acima da grade de assentos: uma faixa fina
+   *  com os cantos superiores arredondados (border-radius assimetrico)
+   *  cria a curva sem precisar de SVG, com leve glow ambar por baixo. */
+  .screen-arc {
+    width: min(22rem, 78%);
+    height: 0.875rem;
+    margin: 0 auto;
+    border-radius: 50% / 100% 100% 0 0;
+    background: linear-gradient(to bottom, var(--color-amber-dim), transparent);
+    box-shadow: 0 10px 28px -6px rgba(232, 163, 61, 0.35);
+  }
 }

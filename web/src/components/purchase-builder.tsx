@@ -116,10 +116,10 @@ export function PurchaseBuilder({ eventId, availability }: Props) {
   return (
     <div className="flex flex-col gap-5">
       {availability.sectors.map((sector) => (
-        <div key={sector.id} className="bg-surface rounded-md p-4">
-          <div className="flex items-baseline justify-between mb-3">
-            <h3 className="text-[15px] font-medium text-ink">{sector.name}</h3>
-            <span className="font-mono text-[11px] text-muted">
+        <div key={sector.id} className="bg-surface rounded-md p-4 sm:p-5">
+          <div className="flex items-baseline justify-between mb-4">
+            <h3 className="text-[15px] font-medium text-ink tracking-wide">{sector.name}</h3>
+            <span className="font-mono text-[13px] text-amber">
               {formatCents(sector.priceCents)}
             </span>
           </div>
@@ -139,7 +139,7 @@ export function PurchaseBuilder({ eventId, availability }: Props) {
               <button
                 type="button"
                 onClick={() => setQuantity(sector, (quantities[sector.id] ?? 0) - 1)}
-                className="w-7 h-7 rounded-sm border border-line-soft text-ink font-mono"
+                className="w-7 h-7 rounded-sm border border-line-soft text-ink font-mono transition-colors hover:border-amber-dim"
               >
                 −
               </button>
@@ -149,7 +149,7 @@ export function PurchaseBuilder({ eventId, availability }: Props) {
               <button
                 type="button"
                 onClick={() => setQuantity(sector, (quantities[sector.id] ?? 0) + 1)}
-                className="w-7 h-7 rounded-sm border border-line-soft text-ink font-mono"
+                className="w-7 h-7 rounded-sm border border-line-soft text-ink font-mono transition-colors hover:border-amber-dim"
               >
                 +
               </button>
@@ -163,14 +163,14 @@ export function PurchaseBuilder({ eventId, availability }: Props) {
         </div>
       ))}
 
-      <div className="sticky bottom-4 bg-surface rounded-md p-4 flex items-center gap-3">
+      <div className="sticky bottom-4 bg-surface rounded-md p-4 sm:p-5 flex items-center gap-3 border-t-2 border-amber/60 shadow-[0_-8px_24px_-8px_rgba(0,0,0,0.5)]">
         <div className="flex-1">
-          <p className="font-mono text-[10px] tracking-wider text-muted-2">TOTAL</p>
-          <p className="text-lg font-medium text-ink">{formatCents(totalCents)}</p>
+          <p className="font-mono text-[10px] tracking-[0.2em] text-muted-2">TOTAL</p>
+          <p className="text-2xl font-semibold text-ink mt-0.5">{formatCents(totalCents)}</p>
         </div>
 
         {!ready ? null : !user ? (
-          <Link href="/login" className="btn-amber px-5 py-2.5">
+          <Link href="/login" className="btn-amber px-5 py-3 text-[11px]">
             Entrar para reservar
           </Link>
         ) : !canBuy ? (
@@ -182,7 +182,7 @@ export function PurchaseBuilder({ eventId, availability }: Props) {
             type="button"
             onClick={handleReserve}
             disabled={submitting || totalItems === 0}
-            className="btn-amber px-5 py-2.5 disabled:opacity-50"
+            className="btn-amber px-5 py-3 text-[11px] disabled:opacity-40 enabled:shadow-[0_0_16px_-4px_rgba(232,163,61,0.55)]"
           >
             {submitting ? "RESERVANDO..." : `RESERVAR (${totalItems})`}
           </button>

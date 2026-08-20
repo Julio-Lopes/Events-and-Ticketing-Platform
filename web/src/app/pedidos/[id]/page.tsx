@@ -130,7 +130,7 @@ export default function OrderPage() {
       <main className="min-h-screen flex items-center justify-center p-6">
         <div className="text-center flex flex-col items-center gap-3">
           <p className="text-sm text-ink">Este pedido já foi pago.</p>
-          <Link href="/meus-ingressos" className="btn-amber inline-flex">
+          <Link href="/meus-ingressos" className="stamp-btn inline-flex">
             Ver meus ingressos
           </Link>
           <BackLink href="/" label="catálogo" />
@@ -147,7 +147,7 @@ export default function OrderPage() {
             {expired ? "O tempo da reserva acabou." : "Esta reserva não está mais disponível."}
           </p>
           <p className="text-xs text-muted mt-1">Os lugares foram devolvidos ao estoque.</p>
-          <Link href={`/eventos/${order.event.id}`} className="btn-amber inline-flex mt-3">
+          <Link href={`/eventos/${order.event.id}`} className="stamp-btn inline-flex mt-3">
             Escolher novamente
           </Link>
         </div>
@@ -160,11 +160,11 @@ export default function OrderPage() {
       <div className="max-w-sm mx-auto flex flex-col gap-5">
         <BackLink href={`/eventos/${order.event.id}`} label="voltar ao evento" />
 
-        <div className="bg-surface rounded-md p-4">
-          <p className="font-mono text-[10px] tracking-wider text-amber">
-            {formatEventDateTime(order.event.startsAt)}
-          </p>
-          <h1 className="text-lg font-medium text-ink mt-1">{order.event.title}</h1>
+        <div className="crop-marks bg-surface border border-line p-4">
+          <span className="poster-tag">{formatEventDateTime(order.event.startsAt)}</span>
+          <h1 className="font-display text-xl font-semibold uppercase tracking-wide text-ink mt-2">
+            {order.event.title}
+          </h1>
           <ul className="mt-3 flex flex-col gap-1">
             {order.items.map((item) => (
               <li key={item.id} className="flex justify-between text-sm">
@@ -176,9 +176,12 @@ export default function OrderPage() {
               </li>
             ))}
           </ul>
-          <div className="flex justify-between mt-3 pt-3 border-t border-line">
+          <div className="ticket-edge mt-3" />
+          <div className="flex justify-between mt-3">
             <span className="text-sm text-ink">Total</span>
-            <span className="text-ink font-medium">{formatCents(order.totalCents)}</span>
+            <span className="font-display text-lg font-semibold text-amber">
+              {formatCents(order.totalCents)}
+            </span>
           </div>
         </div>
 
@@ -187,7 +190,7 @@ export default function OrderPage() {
           <span className="font-mono text-sm text-amber">{remainingLabel}</span>
         </div>
 
-        <form onSubmit={handlePay} className="bg-surface rounded-md p-4 flex flex-col gap-3">
+        <form onSubmit={handlePay} className="bg-surface border border-line p-4 flex flex-col gap-3">
           <label className="flex flex-col gap-1">
             <span className="font-mono text-[10px] tracking-wider text-muted">
               NÚMERO DO CARTÃO
@@ -242,7 +245,7 @@ export default function OrderPage() {
           <button
             type="submit"
             disabled={paying}
-            className="btn-amber justify-center py-2.5 mt-1 disabled:opacity-60"
+            className="stamp-btn justify-center py-2.5 mt-1 disabled:opacity-60"
           >
             {paying ? "PROCESSANDO..." : `PAGAR ${formatCents(order.totalCents)}`}
           </button>

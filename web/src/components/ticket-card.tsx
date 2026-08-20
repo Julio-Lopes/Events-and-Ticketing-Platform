@@ -15,19 +15,19 @@ export function TicketCard({ ticket }: { ticket: Ticket }) {
 
   return (
     <div
-      className={`bg-surface rounded-md overflow-hidden relative ${used ? "opacity-60" : ""}`}
+      className={`crop-marks bg-surface border border-line overflow-hidden relative ${used ? "opacity-60" : ""}`}
     >
       {used && (
-        <span className="absolute top-3 right-3 font-mono text-[10px] tracking-wider text-muted-2 border-2 border-muted-2 rounded-sm px-2 py-0.5 -rotate-6">
+        <span className="absolute top-3 right-3 font-mono text-[10px] tracking-wider text-muted-2 border-2 border-muted-2 px-2 py-0.5 -rotate-6">
           {ticket.status === "USED" ? "UTILIZADO" : "CANCELADO"}
         </span>
       )}
 
       <div className="p-4">
-        <p className="font-mono text-[10px] tracking-wider text-amber">
-          {formatEventDateTime(ticket.event.startsAt)}
-        </p>
-        <h2 className="text-lg font-medium text-ink mt-1">{ticket.event.title}</h2>
+        <span className="poster-tag">{formatEventDateTime(ticket.event.startsAt)}</span>
+        <h2 className="font-display text-xl font-semibold uppercase tracking-wide text-ink mt-2">
+          {ticket.event.title}
+        </h2>
         <p className="text-sm text-muted mt-0.5">
           {ticket.event.venue} · {ticket.event.city}
         </p>
@@ -41,11 +41,11 @@ export function TicketCard({ ticket }: { ticket: Ticket }) {
 
       <div className="p-4 flex items-center gap-4">
         {ticket.qrPayload ? (
-          <div className="bg-paper rounded-sm p-2 shrink-0">
+          <div className="bg-paper p-2 shrink-0 border border-line-soft">
             <QRCodeSVG value={ticket.qrPayload} size={88} />
           </div>
         ) : (
-          <div className="w-[104px] h-[88px] rounded-sm bg-surface-alt flex items-center justify-center shrink-0">
+          <div className="w-[104px] h-[88px] bg-surface-alt border border-line-soft flex items-center justify-center shrink-0">
             <span className="font-mono text-[9px] text-muted-2 text-center px-2">
               sem QR ativo
             </span>

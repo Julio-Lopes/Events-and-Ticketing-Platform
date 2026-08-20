@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { ApiError } from "@/lib/api";
@@ -132,9 +133,16 @@ export default function LoginPage() {
       </div>
 
       <div className="hidden lg:block relative flex-1 overflow-hidden bg-surface-dim">
-        <div className="absolute inset-0 curtain-texture" />
-        <div className="absolute inset-0 curtain-glow" />
-        <div className="absolute inset-0 bg-gradient-to-t from-bg/80 via-transparent to-bg/20" />
+        <Image
+          src="/loginImage.jpg"
+          alt=""
+          fill
+          priority
+          sizes="56vw"
+          className="object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-bg/90 via-bg/15 to-bg/35" />
+        <div className="absolute inset-0 curtain-glow opacity-60 mix-blend-screen" />
         <div className="absolute bottom-12 left-12">
           <p className="font-mono text-[13px] tracking-[0.4em] text-amber/80">BILHETERIA</p>
         </div>

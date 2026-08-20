@@ -37,6 +37,10 @@
 
   --font-sans: var(--font-archivo);
   --font-mono: var(--font-plex-mono);
+  /** Condensada/display, so para titulos de evento e cabecalhos de vitrine
+   *  (cartaz de cinema). Corpo de texto continua em --font-sans de proposito:
+   *  informacao (local, data, preco) precisa da legibilidade neutra do Archivo. */
+  --font-display: var(--font-oswald);
 
   --radius-sm: 2px;
   --radius-md: 4px;
@@ -46,6 +50,12 @@
 @layer base {
   body {
     background-color: var(--color-bg);
+    /** Grao fotografico/papel sutil sobre o fundo inteiro: ruido branco
+     *  gerado por feTurbulence, alpha final de ~4% via feColorMatrix.
+     *  Uma unica camada, aplicada uma vez no body: mais barato e mais
+     *  discreto do que repetir textura por card. */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.05 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-repeat: repeat;
     color: var(--color-ink);
     font-family: var(--font-sans);
   }
@@ -134,34 +144,124 @@
     opacity: 0.9;
   }
 
-  /** Textura de cortina para o painel visual do login: duas camadas de
-   *  repeating-linear-gradient, uma so de sombra (as pregas) e outra
-   *  alternando tom de superficie (o veludo), mais um glow radial ambar
-   *  no topo simulando luz de palco antes do espetaculo. */
-  .curtain-texture {
-    background-image:
-      repeating-linear-gradient(
-        100deg,
-        rgba(0, 0, 0, 0.3) 0px,
-        rgba(0, 0, 0, 0.3) 2px,
-        transparent 2px,
-        transparent 34px
-      ),
-      repeating-linear-gradient(
-        100deg,
-        var(--color-surface-alt) 0px,
-        var(--color-surface-alt) 17px,
-        var(--color-surface-dim) 17px,
-        var(--color-surface-dim) 34px
-      );
-  }
-
+  /** Glow radial ambar no topo do painel visual do login, simulando luz
+   *  de palco antes do espetaculo. Usado por cima da foto (loginImage). */
   .curtain-glow {
     background: radial-gradient(
       ellipse 60% 45% at 50% 18%,
       rgba(232, 163, 61, 0.24),
       transparent 70%
     );
+  }
+
+  /** Linha de recorte de bilhete: divisor pontilhado horizontal, usado
+   *  no lugar de uma borda solida onde uma regua de titulo/rodape pediria
+   *  destaque grafico (cabecalho da vitrine, rodape de lista). */
+  .ticket-edge {
+    height: 1px;
+    background-image: repeating-linear-gradient(
+      to right,
+      var(--color-line-soft) 0,
+      var(--color-line-soft) 5px,
+      transparent 5px,
+      transparent 11px
+    );
+  }
+
+  /** Moldura de poster: cantos cortados (nao arredondados) lembrando o
+   *  canto guilhotinado de um ingresso impresso. clip-path em vez de
+   *  border-radius de proposito: a estetica pedida e "irregular", nao
+   *  suave. */
+  .poster-frame {
+    clip-path: polygon(
+      9px 0,
+      100% 0,
+      100% calc(100% - 9px),
+      calc(100% - 9px) 100%,
+      0 100%,
+      0 9px
+    );
+  }
+
+  /** Marcas de registro/impressao: dois tracinhos em "L" nos cantos
+   *  opostos do card, como marca de corte de grafica. Discreto (opacity
+   *  baixa, 1px), so para dar textura editorial ao redor do card inteiro. */
+  .crop-marks {
+    position: relative;
+  }
+
+  .crop-marks::before,
+  .crop-marks::after {
+    content: "";
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    opacity: 0.55;
+    pointer-events: none;
+    border-color: var(--color-muted-2);
+  }
+
+  .crop-marks::before {
+    top: -1px;
+    left: -1px;
+    border-top: 1px solid;
+    border-left: 1px solid;
+  }
+
+  .crop-marks::after {
+    bottom: -1px;
+    right: -1px;
+    border-bottom: 1px solid;
+    border-right: 1px solid;
+  }
+
+  /** Etiqueta de cartaz para data/categoria: caixa pontilhada levemente
+   *  rotacionada, como uma tarja colada a mao sobre o poster impresso. */
+  .poster-tag {
+    display: inline-flex;
+    align-items: center;
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    letter-spacing: 0.07em;
+    padding: 0.2rem 0.45rem;
+    border: 1px dashed var(--color-amber-dim);
+    color: var(--color-amber);
+    background-color: rgba(232, 163, 61, 0.06);
+    transform: rotate(-1.2deg);
+  }
+
+  /** CTA com cara de carimbo: bloco ambar solido com uma segunda borda
+   *  pontilhada por dentro (o "anel" de um carimbo de tinta), que gira
+   *  levemente no hover como se estivesse sendo pressionado no papel. */
+  .stamp-btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.08em;
+    color: var(--color-amber-ink);
+    background-color: var(--color-amber);
+    padding: 0.55rem 0.75rem;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .stamp-btn::before {
+    content: "";
+    position: absolute;
+    inset: 3px;
+    border: 1px dashed rgba(65, 36, 2, 0.4);
+    pointer-events: none;
+  }
+
+  .stamp-btn:hover {
+    transform: rotate(-1.5deg);
+    box-shadow: 0 6px 16px -6px rgba(232, 163, 61, 0.45);
+  }
+
+  .stamp-btn:active {
+    transform: rotate(0deg) scale(0.97);
   }
 
   /** Arco da "tela"/"palco" acima da grade de assentos: uma faixa fina

@@ -38,8 +38,13 @@ export default function MyTicketsPage() {
         <BackLink href="/" label="catálogo" />
 
         <header>
-          <p className="font-mono text-[10px] tracking-wider text-amber">SEU ACERVO</p>
-          <h1 className="text-2xl font-medium text-ink mt-1">Meus ingressos</h1>
+          <p className="font-mono text-[10px] tracking-[0.24em] text-amber-dim uppercase">
+            Seu acervo
+          </p>
+          <h1 className="font-display text-3xl font-semibold uppercase tracking-wide text-ink mt-1">
+            Meus ingressos
+          </h1>
+          <div className="ticket-edge mt-3" />
         </header>
 
         {tickets === null && !error && (
@@ -51,7 +56,7 @@ export default function MyTicketsPage() {
         {tickets?.length === 0 && (
           <div className="text-center py-8">
             <p className="text-sm text-muted">Você ainda não tem ingressos.</p>
-            <Link href="/" className="text-amber text-sm mt-2 inline-block">
+            <Link href="/" className="text-amber text-sm mt-2 inline-block hover:opacity-80">
               Ver eventos em cartaz
             </Link>
           </div>

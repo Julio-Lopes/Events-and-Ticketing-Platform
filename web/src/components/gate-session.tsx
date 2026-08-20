@@ -155,7 +155,7 @@ export function GateSession({ eventId }: { eventId: string }) {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="relative bg-surface rounded-md overflow-hidden aspect-[3/4] max-w-xs mx-auto w-full">
+      <div className="poster-frame relative bg-surface border border-line-soft overflow-hidden aspect-[3/4] max-w-xs mx-auto w-full">
         <video ref={videoRef} className="w-full h-full object-cover" muted playsInline />
         <canvas ref={canvasRef} className="hidden" />
 
@@ -171,7 +171,9 @@ export function GateSession({ eventId }: { eventId: string }) {
             onClick={reset}
             className={`absolute inset-0 flex flex-col items-center justify-center gap-2 px-4 ${RESULT_TONE[result.result]}`}
           >
-            <span className="font-mono text-xl tracking-wider">{RESULT_LABEL[result.result]}</span>
+            <span className="font-display text-2xl font-semibold uppercase tracking-wide">
+              {RESULT_LABEL[result.result]}
+            </span>
             {result.ticket && (
               <div className="text-center text-sm">
                 <p>{result.ticket.holderName}</p>
@@ -201,13 +203,19 @@ export function GateSession({ eventId }: { eventId: string }) {
       {cameraError && <p className="text-xs text-danger text-center">{cameraError}</p>}
 
       <form onSubmit={handleManualSubmit} className="flex gap-2">
-        <input
-          value={manualCode}
-          onChange={(e) => setManualCode(e.target.value)}
-          placeholder="ELT-XXXXX-XXXXX"
-          className="flex-1 bg-surface border border-line rounded-sm px-3 py-2 text-sm text-ink font-mono uppercase placeholder:normal-case placeholder:text-muted-2"
-        />
-        <button type="submit" className="btn-amber px-4">
+        <div className="flex-1 flex items-center gap-2 bg-surface border border-line-soft px-3 focus-within:border-amber-dim transition-colors">
+          <span className="font-mono text-[9px] tracking-[0.14em] text-muted-2 shrink-0">
+            CÓDIGO
+          </span>
+          <span className="w-px h-4 bg-line shrink-0" />
+          <input
+            value={manualCode}
+            onChange={(e) => setManualCode(e.target.value)}
+            placeholder="ELT-XXXXX-XXXXX"
+            className="flex-1 min-w-0 bg-transparent py-2.5 text-sm text-ink font-mono uppercase placeholder:normal-case placeholder:text-muted-2 outline-none"
+          />
+        </div>
+        <button type="submit" className="stamp-btn px-4">
           VALIDAR
         </button>
       </form>

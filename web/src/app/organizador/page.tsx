@@ -89,13 +89,19 @@ export default function OrganizerPage() {
 
         <header className="flex items-end justify-between gap-3">
           <div>
-            <p className="font-mono text-[10px] tracking-wider text-amber">PAINEL</p>
-            <h1 className="text-2xl font-medium text-ink mt-1">Seus eventos</h1>
+            <p className="font-mono text-[10px] tracking-[0.24em] text-amber-dim uppercase">
+              Painel
+            </p>
+            <h1 className="font-display text-3xl font-semibold uppercase tracking-wide text-ink mt-1">
+              Seus eventos
+            </h1>
           </div>
-          <Link href="/organizador/novo" className="btn-amber shrink-0">
+          <Link href="/organizador/novo" className="stamp-btn shrink-0">
             + Novo evento
           </Link>
         </header>
+
+        <div className="ticket-edge -mt-1" />
 
         {error && <p className="text-sm text-danger">{error}</p>}
         {actionError && <p className="text-sm text-danger">{actionError}</p>}
@@ -108,13 +114,11 @@ export default function OrganizerPage() {
 
         <div className="flex flex-col gap-3">
           {events?.map((event) => (
-            <div key={event.id} className="bg-surface rounded-md p-4">
+            <div key={event.id} className="crop-marks bg-surface border border-line p-4">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="font-mono text-[10px] tracking-wider text-amber">
-                    {formatEventDateTime(event.startsAt)}
-                  </p>
-                  <h2 className="text-[15px] font-medium text-ink mt-0.5 truncate">
+                  <span className="poster-tag">{formatEventDateTime(event.startsAt)}</span>
+                  <h2 className="font-display text-lg font-semibold uppercase tracking-wide text-ink mt-1.5 truncate">
                     {event.title}
                   </h2>
                   <p className="text-xs text-muted mt-0.5">

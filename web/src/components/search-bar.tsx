@@ -16,13 +16,19 @@ export function SearchBar({ initialQuery }: { initialQuery: string }) {
 
   return (
     <form onSubmit={handleSubmit} className="flex gap-2">
-      <input
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
-        placeholder="Buscar por título, local ou cidade"
-        className="flex-1 bg-surface border border-line rounded-sm px-3 py-2 text-sm text-ink placeholder:text-muted-2"
-      />
-      <button type="submit" className="btn-amber px-4">
+      <div className="flex-1 flex items-center gap-2 bg-surface border border-line-soft px-3 focus-within:border-amber-dim transition-colors">
+        <span className="font-mono text-[9px] tracking-[0.14em] text-muted-2 shrink-0">
+          BUSCA
+        </span>
+        <span className="w-px h-4 bg-line shrink-0" />
+        <input
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          placeholder="Título, local ou cidade"
+          className="flex-1 min-w-0 bg-transparent py-2.5 text-sm text-ink placeholder:text-muted-2 outline-none"
+        />
+      </div>
+      <button type="submit" className="stamp-btn px-4">
         BUSCAR
       </button>
     </form>

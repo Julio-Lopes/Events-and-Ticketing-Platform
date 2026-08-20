@@ -72,8 +72,10 @@ export default function GatePage() {
         <BackLink href="/" label="catálogo" />
 
         <header>
-          <p className="font-mono text-[10px] tracking-wider text-amber">PORTARIA</p>
-          <h1 className="text-xl font-medium text-ink mt-1">
+          <p className="font-mono text-[10px] tracking-[0.24em] text-amber-dim uppercase">
+            Portaria
+          </p>
+          <h1 className="font-display text-2xl font-semibold uppercase tracking-wide text-ink mt-1">
             {current ? current.title : "Escolha a sessão"}
           </h1>
           {current && (
@@ -81,6 +83,7 @@ export default function GatePage() {
               {current.venue} · {current.city}
             </p>
           )}
+          <div className="ticket-edge mt-3" />
         </header>
 
         {error && <p className="text-sm text-danger">{error}</p>}
@@ -92,7 +95,7 @@ export default function GatePage() {
                 <button
                   type="button"
                   onClick={() => selectEvent(e.id)}
-                  className="w-full text-left bg-surface rounded-md p-3 border border-transparent hover:border-amber-dim"
+                  className="w-full text-left bg-surface border border-line p-3 transition-[transform,border-color] duration-150 ease-out hover:border-amber-dim hover:translate-x-0.5"
                 >
                   <p className="text-sm text-ink">{e.title}</p>
                   <p className="text-xs text-muted mt-0.5">

@@ -4,9 +4,9 @@ import {
   createContext,
   useCallback,
   useContext,
-  useEffect,
   useMemo,
   useState,
+  useSyncExternalStore,
 } from "react";
 import { apiFetch, ApiError } from "./api";
 import type { AuthUser, LoginResponse } from "./types";
@@ -21,7 +21,6 @@ interface Session {
 interface AuthContextValue {
   user: AuthUser | null;
   token: string | null;
-  /** false so depois de tentar ler o localStorage no primeiro render. */
   ready: boolean;
   login: (email: string, password: string) => Promise<AuthUser>;
   register: (name: string, email: string, password: string) => Promise<AuthUser>;
@@ -30,27 +29,43 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [session, setSession] = useState<Session | null>(null);
-  const [ready, setReady] = useState(false);
+/**
+ * Le a sessao salva. Fora do navegador (render do servidor) devolve
+ * null, porque localStorage nao existe la.
+ */
+function readStoredSession(): Session | null {
+  if (typeof window === "undefined") return null;
+  const raw = window.localStorage.getItem(STORAGE_KEY);
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw) as Session;
+  } catch {
+    window.localStorage.removeItem(STORAGE_KEY);
+    return null;
+  }
+}
 
-  /**
-   * localStorage nao existe no primeiro render do servidor, entao a
-   * leitura acontece so no efeito. `ready` evita que uma tela protegida
-   * redirecione para o login por uma fracao de segundo antes da sessao
-   * salva ser recuperada.
-   */
-  useEffect(() => {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      try {
-        setSession(JSON.parse(raw));
-      } catch {
-        window.localStorage.removeItem(STORAGE_KEY);
-      }
-    }
-    setReady(true);
-  }, []);
+/**
+ * `ready` sinaliza que a hidratacao terminou e a leitura do
+ * localStorage ja vale. Sem ele, uma tela protegida redirecionaria
+ * para o login por uma fracao de segundo antes de recuperar a sessao
+ * salva, mesmo com o usuario logado.
+ *
+ * useSyncExternalStore resolve isso sem efeito e sem render em
+ * cascata: devolve o valor do servidor ate a hidratacao acabar, e o
+ * do cliente depois. A alternativa (ler no efeito e chamar setState)
+ * renderiza duas vezes e e o que o lint aponta.
+ */
+const subscribeNoop = () => () => {};
+
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const ready = useSyncExternalStore(
+    subscribeNoop,
+    () => true,
+    () => false,
+  );
+
+  const [session, setSession] = useState<Session | null>(readStoredSession);
 
   const persist = useCallback((next: Session | null) => {
     setSession(next);

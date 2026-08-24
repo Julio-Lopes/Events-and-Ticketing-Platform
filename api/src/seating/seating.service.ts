@@ -12,12 +12,6 @@ export class SeatingService {
 
   /**
    * Devolve ao estoque tudo que expirou sem pagamento.
-   *
-   * Roda sob demanda, no inicio de toda reserva e de toda consulta de
-   * disponibilidade, em vez de num cron. Um cron precisaria de
-   * @nestjs/schedule e de um processo vivo; chamar aqui garante que
-   * ninguem nunca ve estoque preso, porque quem veria e exatamente
-   * quem dispara a limpeza.
    */
   async releaseExpired(): Promise<number> {
     const now = new Date();
@@ -30,11 +24,13 @@ export class SeatingService {
 
     await this.prisma.$transaction(async (tx) => {
       for (const order of expired) {
-        /**
-         * Pista: o `sold` foi incrementado na reserva, entao expirar
-         * exige devolver. Lugar marcado nao mexe em contador, so solta
-         * o lock do assento.
-         */
+
+        const claimed = await tx.order.updateMany({
+          where: { id: order.id, status: OrderStatus.PENDING },
+          data: { status: OrderStatus.EXPIRED },
+        });
+        if (claimed.count === 0) continue;
+
         const perSector = new Map<string, number>();
         for (const item of order.items) {
           if (!item.seatId) {
@@ -56,11 +52,6 @@ export class SeatingService {
         await tx.orderItem.updateMany({
           where: { orderId: order.id },
           data: { status: OrderItemStatus.RELEASED },
-        });
-
-        await tx.order.update({
-          where: { id: order.id },
-          data: { status: OrderStatus.EXPIRED },
         });
       }
     });
@@ -119,10 +110,6 @@ export class SeatingService {
             id: seat.id,
             row: seat.row,
             number: seat.number,
-            /**
-             * O front recebe estado, nao os campos crus de lock.
-             * Expor lockedUntil vazaria o id de outra reserva.
-             */
             state: this.seatState(seat.items.length > 0, seat.lockedUntil, now),
           })),
           available: sector.seats.filter(

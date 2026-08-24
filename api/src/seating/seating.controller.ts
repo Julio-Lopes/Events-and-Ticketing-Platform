@@ -6,7 +6,6 @@ import { SeatingService } from './seating.service';
 export class SeatingController {
   constructor(private seating: SeatingService) {}
 
-  /** Publico: da para ver o mapa antes de logar, como em qualquer bilheteria. */
   @Public()
   @Get('availability')
   availability(@Param('eventId') eventId: string) {

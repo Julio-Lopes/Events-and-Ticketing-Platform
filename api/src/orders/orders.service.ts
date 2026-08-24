@@ -141,13 +141,6 @@ export class OrdersService {
     });
   }
 
-  /**
-   * Pista: um unico UPDATE condicional resolve.
-   *
-   * A condicao `sold + qty <= capacity` e avaliada pelo proprio Postgres
-   * dentro do comando, entao nao existe janela entre ler e escrever.
-   * Se o UPDATE nao afetar linha nenhuma, e porque nao cabia.
-   */
   private async holdGeneral(tx: Prisma.TransactionClient, sectorId: string, qty: number) {
     const affected = await tx.$executeRaw`
       UPDATE "Sector"
@@ -188,6 +181,15 @@ export class OrdersService {
     }
 
     return this.prisma.$transaction(async (tx) => {
+
+      const claimed = await tx.order.updateMany({
+        where: { id: order.id, status: OrderStatus.PENDING },
+        data: { status: OrderStatus.CANCELLED },
+      });
+      if (claimed.count === 0) {
+        throw new ConflictException('Esta reserva ja foi processada.');
+      }
+
       const perSector = new Map<string, number>();
       for (const item of order.items) {
         if (!item.seatId) {
@@ -209,10 +211,7 @@ export class OrdersService {
         where: { orderId: order.id },
         data: { status: OrderItemStatus.RELEASED },
       });
-      return tx.order.update({
-        where: { id: order.id },
-        data: { status: OrderStatus.CANCELLED },
-      });
+      return tx.order.findUnique({ where: { id: order.id } });
     });
   }
 }

@@ -23,10 +23,8 @@ export interface CatalogItem {
 
 export interface CatalogProvider {
   readonly source: CatalogSource;
-  /** Se a chave nao estiver configurada, o provedor se declara indisponivel. */
   readonly available: boolean;
   search(query: string, limit: number): Promise<CatalogItem[]>;
-  /** Destaques: filmes em cartaz ou eventos proximos. */
   featured(limit: number): Promise<CatalogItem[]>;
   getById(externalId: string): Promise<CatalogItem | null>;
 }

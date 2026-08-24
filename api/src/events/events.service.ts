@@ -64,7 +64,6 @@ export class EventsService {
       total,
       items: items.map((e) => ({
         ...e,
-        /** O card do catalogo mostra "a partir de", nao a lista de precos. */
         priceFromCents: e.sectors.length
           ? Math.min(...e.sectors.map((s) => s.priceCents))
           : null,

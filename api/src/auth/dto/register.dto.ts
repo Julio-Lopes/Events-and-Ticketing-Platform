@@ -1,10 +1,9 @@
-import { Role } from '../../prisma/client';
-import { IsEmail, IsEnum, IsString, MinLength } from 'class-validator';
+import { IsEmail, IsString, MinLength } from 'class-validator';
 
 /**
  * O cadastro publico so cria CLIENTE. Contas de ORGANIZADOR e PORTARIA
- * nascem pelo seed ou por um endpoint administrativo, porque deixar
- * qualquer um se registrar como portaria destruiria a validacao.
+ * nascem pelo seed, porque deixar qualquer um se registrar como portaria
+ * tornaria a validacao de ingresso decorativa.
  */
 export class RegisterDto {
   @IsString()
@@ -17,9 +16,4 @@ export class RegisterDto {
   @IsString()
   @MinLength(6)
   password!: string;
-}
-
-export class CreateStaffDto extends RegisterDto {
-  @IsEnum(Role)
-  role!: Role;
 }

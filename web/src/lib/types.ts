@@ -53,7 +53,6 @@ export interface EventSummary {
   startsAt: string;
   doorsAt: string | null;
   sectors: EventSectorSummary[];
-  /** null se o evento, por algum motivo, nao tem setor nenhum. */
   priceFromCents: number | null;
 }
 
@@ -158,7 +157,6 @@ export interface CatalogItem {
 
 export interface CatalogSearchResult {
   items: CatalogItem[];
-  /** Provedores que falharam ou nao estao configurados nesta busca. */
   unavailable: string[];
 }
 

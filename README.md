@@ -1,4 +1,4 @@
-# Desafio Elite Dev: Plataforma de Eventos e Ingressos
+# Plataforma de Eventos e Ingressos
 
 Organizador publica eventos a partir de um catálogo externo (TMDb ou
 Ticketmaster), cliente reserva um lugar, paga de forma simulada e recebe um

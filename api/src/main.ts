@@ -5,6 +5,7 @@ function isAllowedOrigin(origin: string): boolean {
   const configured = process.env.APP_URL;
   if (configured && origin === configured.replace(/\/$/, '')) return true;
   if (origin === 'http://localhost:3000') return true;
+  if (origin === 'http://events-and-ticketing.jcrldev.com') return true;
   return /^https:\/\/[a-z0-9-]+\.vercel\.app$/.test(origin);
 }
 
